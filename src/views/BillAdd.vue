@@ -57,6 +57,7 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { useRouter } from "vue-router";
 import { reactive } from "vue";
 import router from "../router";
+import axios from "axios";
 export default {
     components: {
         Form,
@@ -78,7 +79,7 @@ export default {
         const data = reactive({
             bill: {}
         });
-        function submitItem() {
+        async function submitItem() {
             data.bill.tinhTrang = false;
             const date = new Date();
             let day = date.getDate();
@@ -87,8 +88,11 @@ export default {
             let currentDate = `${day}-${month}-${year}`;
             data.bill.ngaylap = currentDate;
             data.bill.products = JSON.parse(localStorage.getItem("cartData"));
-            console.log(currentDate); // "17-6-2022"
-            console.log(data.bill);
+            const response = await axios.post("http://localhost:3000/api/bill",data.bill);
+            console.log(data.bill.products);
+            for(var i =0 ;i<data.bill.products.lenght;i++) {
+                await axios.put(`http://localhost:3000/api/item/tinhtrang/${data.bill.products[i]._id}`);
+            }
             localStorage.removeItem("cartData");
 
         }

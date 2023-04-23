@@ -109,20 +109,25 @@ export default {
             bill: {}
         });
         const searchText = ref("");
-        console.log(Object.keys(data.bill).length);
         //ref => data= ref(2) =>data.value = 3
         //data = reactive([]); => data.push(1,2);
         async function getAllBills() {
-            const response = await axios.get("http://localhost:3000/api/bill");
-            data.listBill = response.data;
+            try{
+                const response = await axios.get("http://localhost:3000/api/bill");
+                data.listBill = response.data;
+            }catch(e){
+
+            }
+            
         }
         getAllBills();
     //     async function chooseItem(id) {
     //         const response = await axios.get(`http://localhost:3000/api/item/${id}`);
     //         data.item = response.data;
     //     }
-        let ketqualoc = computed(() => {
-            return data.listBill.filter((e) => e.nameCustomer.toUpperCase().includes(searchText.value.toUpperCase()) || e.phone.toUpperCase().includes(searchText.value.toUpperCase()));
+     
+    let ketqualoc = computed(() => {
+             return data.listBill.filter((e) => {return e.nameCustomer.includes(searchText.value.toUpperCase()) || e.phone.toUpperCase().includes(searchText.value.toUpperCase())});
         })
         return {
             ketqualoc,
