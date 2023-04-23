@@ -1,104 +1,134 @@
 <template>
-    <div class="row  d-flex justify-content-center">
+    <AppHeader />
+    <div class="row  d-flex justify-content-center mt-2">
         <div class="col-md-10">
-            <InputSearch v-model="searchText" />
-        </div> 
-    </div>
-    <div class="mt-2 row d-flex justify-content-around">
-        <div class="col-2 backgound-violet rounded">
-            <div class="card " >
-                <ul class="list-group list-group-flush justify-content-center m-2">
-                    <li class="list-group-item"><a href="" class="text-center text-violet">Nhân viên </a></li>
-                    <li class="list-group-item"><a href="" class="text-center text-violet">Sản phẩm </a></li>
-                    <li class="list-group-item"><a href="./Bill.vue" class="text-center text-violet">Đơn hàng </a></li>
-                    <li class="list-group-item"><a href="" class="text-center text-violet">Doanh thu </a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="col-9">
-            <div>
-                <button class="btn btn-sm btn-violet mt-2" @click="goToAddBill">
-                    <i class="fas fa-plus"></i> Thêm Bill
-                </button>
-            </div>
-            <div class="row">
-                <div class="col-7">
-                    <BillList 
-                    v-if="filteredBillsCount > 0" 
-                    :bills="filteredBills" 
-                    v-model:activeIndex="activeIndex" 
-                    />
-                    <!-- <p v-else>Không có liên hệ nào.</p>     -->
-                    <p v-else>{{ filteredBills }}</p> 
+            <div class="input-group">
+                <input type="text" class="form-control text-violet" placeholder="Nhập thông tin cần tìm"
+                    v-model="searchText" />
+                <div class="input-group-append">
+                    <button class="btn btn-outline-violet text-white" type="button">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-
+    <div class="mt-2 row d-flex justify-content-around">
+        <div class="col-2 backgound-violet rounded">
+            <div class="card ">
+                <ul class="list-group list-group-flush justify-content-center m-2">
+                    <li class="list-group-item"><a href="" class="text-center text-violet">Nhân viên </a></li>
+                    <li class="list-group-item">
+                        <router-link :to="{
+                            name: 'home',
+                        }">
+                            <a href="" class="text-center text-violet">Sản phẩm</a>
+                        </router-link>
+                    </li>
+                    <li class="list-group-item">
+                        <router-link :to="{
+                            name: 'bill',
+                        }">
+                            <a href="" class="text-center text-violet">Đơn hàng</a>
+                        </router-link>
+                        </li>
+                    <li class="list-group-item"><a href="" class="text-center text-violet">Doanh thu </a></li>
+                    <li class="list-group-item">
+                        <router-link :to="{
+                                name: 'cart',
+                            }">
+                            <a href="" class="text-center text-violet">Sản phẩm đã được chọn</a>
+                        </router-link>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-9">
+            <div class="mr-auto text-violet ">
+                <h4><i class="far fa-chart-bar"></i> Hoạt động hôm nay:</h4>
+            </div>
+            <div class="row">
+                <div class=" card backgound-violet col-3 ml-2">
+                    <div class="card-body">
+                        <h6 class="text-white"><i class="fas fa-shopping-cart text-white"></i> Số đơn hàng: 0</h6>
+                    </div>
+                </div>
+                <div class=" card backgound-violet col-3 ml-2">
+                    <div class="card-body">
+                        <h6 class="text-white"><i class="fas fa-redo text-white"></i> Khách trả hàng: 0</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <table class="table mt-2">
+                        <thead class="backgound-violet text-white">
+                            <tr>
+                                <th scope="col">Ngày thuê</th>
+                                <th scope="col">Ngày trả</th>
+                                <th scope="col">Mã HD</th>
+                                <th scope="col">Tên KH</th>
+                                <th scope="col">SDT</th>
+                                <th scope="col">Tình trạng</th>
+                            </tr>
+                        </thead>
+                        <tbody  v-for="(bill, index) in ketqualoc" :key="bill._id">
+                            <tr>
+                                <td>{{ bill.ngaymuon }}</td>
+                                <td>{{ bill.ngaytra }}</td>
+                                <td>{{ bill._id }}</td>
+                                <td>{{ bill.nameCustomer }}</td>
+                                <td>{{ bill.phone }}</td>
+                                <td v-if="bill.tinhTrang">đã trả</td>
+                                <td v-else> đang thuê </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <AppFooter />
 </template>
 <script>
-import InputSearch from "@/components/InputSearch.vue";
-import BillList from "@/components/BillList.vue";
-import BillService from "@/services/bill.service";
+import AppHeader from "../components/AppHeader.vue";
+import AppFooter from "../components/AppFooter.vue";
+import axios from "axios";
+import { reactive, computed, ref } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
     components: {
-        InputSearch,
-        BillList,
+        AppHeader,
+        AppFooter,
     },
-    data() {
-        return{
-            bills: [],
-            activeIndex: -1,
-            searchText: "",
-        };
-    },
-    watch: {
-        searchText() {
-            this.activeIndex = -1;
-        },
-    },
-    computed: {
-        //Chuyển đổi các đối tượng thành chuỗi để tiện tìm kiếm
-        billStrings() {
-            return this.bills.map((bill) => {
-                const {nameCustomer, address, phone, indentification, ngaylap, ngaymuon, ngaytra, tinhTrang } = bill;
-                return [nameCustomer, address, phone, indentification, ngaylap, ngaymuon, ngaytra, tinhTrang ].join("");
-            });
-        },
-        //Trả về các Bill có chứa thông tin cần tìm
-        filteredBills() {
-            if (!this.searchText) return this.bills;
-            return this.bills.filter((_bill, index) => 
-                this.billStrings[index].includes(this.searchText)
-            );
-        },
-        activeBill() {
-            if (this.activeIndex <0) return null;
-            return this.filteredBills[this.activeIndex];
-        },
-        filteredBillsCount() {
-            return this.filteredBills.length;
-        },
-    },
-    methods: {
-        async retrieveBills() {
-            try {
-                this.bills = await BillService.getAll();
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        refreshList() {
-            this.retrieveBills();
-            this.activeIndex =-1;
-        },
-        goToAddBill() {
-            this.$router.push({name: "bill.add"});
-        },
-    },
-    mounted() {
-        this.refreshList();
-    },
+    setup() {
+        const router = useRouter();
+        const data = reactive({
+            listBill: [],
+            bill: {}
+        });
+        const searchText = ref("");
+        console.log(Object.keys(data.bill).length);
+        //ref => data= ref(2) =>data.value = 3
+        //data = reactive([]); => data.push(1,2);
+        async function getAllBills() {
+            const response = await axios.get("http://localhost:3000/api/bill");
+            data.listBill = response.data;
+        }
+        getAllBills();
+    //     async function chooseItem(id) {
+    //         const response = await axios.get(`http://localhost:3000/api/item/${id}`);
+    //         data.item = response.data;
+    //     }
+        let ketqualoc = computed(() => {
+            return data.listBill.filter((e) => e.nameCustomer.toUpperCase().includes(searchText.value.toUpperCase()) || e.phone.toUpperCase().includes(searchText.value.toUpperCase()));
+        })
+        return {
+            ketqualoc,
+            searchText,
+            data,
+        }
+    }
 };
 </script>

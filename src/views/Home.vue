@@ -1,9 +1,5 @@
 <template>
     <AppHeader />
-    <!-- <div class="mt-3">
-      <router-link v-if="!$store.state.username" to="/login">Login</router-link>
-      <a href="" v-if="$store.state.username" @click="logout">Logout</a>
-    </div> -->
     <div class="row  d-flex justify-content-center mt-2">
         <div class="col-md-10">
             <div class="input-group">
@@ -22,9 +18,28 @@
             <div class="card ">
                 <ul class="list-group list-group-flush justify-content-center m-2">
                     <li class="list-group-item"><a href="" class="text-center text-violet">Nhân viên </a></li>
-                    <li class="list-group-item"><a href="" class="text-center text-violet">Sản phẩm </a></li>
-                    <li class="list-group-item"><a href="./bill" class="text-center text-violet">Đơn hàng </a></li>
+                    <li class="list-group-item">
+                        <router-link :to="{
+                                name: 'home',
+                            }">
+                            <a href="" class="text-center text-violet">Sản phẩm</a>
+                        </router-link>
+                    </li>
+                    <li class="list-group-item">
+                        <router-link :to="{
+                                name: 'bill',
+                            }">
+                            <a href="" class="text-center text-violet">Đơn hàng</a>
+                        </router-link>
+                    </li>
                     <li class="list-group-item"><a href="" class="text-center text-violet">Doanh thu </a></li>
+                    <li class="list-group-item">
+                        <router-link :to="{
+                                name: 'cart',
+                            }">
+                            <a href="" class="text-center text-violet">Sản phẩm đã được chọn</a>
+                        </router-link>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -60,17 +75,19 @@
                                 <th scope="col">Trạng thái</th>
                             </tr>
                         </thead>
-                        <tbody  v-for="(item, index) in ketqualoc" :key="item._id">
+                        <tbody v-for="(item, index) in ketqualoc" :key="item._id">
                             <tr @click="chooseItem(item._id)">
                                 <td>{{ item.ten }}</td>
                                 <td>{{ item.mauSac }}</td>
                                 <td>{{ item.gia }}</td>
-                                <td>{{ item.tinhTrang }}</td>
+                                <td v-if="item.tinhTrang">đang cho thuê</td>
+                                <td v-else> còn trống </td>
+                                <td style="cursor: pointer;">
+                                    <img @click="addToCart(item._id)" src="../assets/img/add-to-basket.png" />
+                                </td>
                             </tr>
                         </tbody>
                     </table>
-                    <!-- <ItemList v-if="filteredItemsCount > 0" :items="filteredItems" v-model:activeIndex="activeIndex" /> -->
-                    <!-- <p v-else>Không có liên hệ nào.</p> -->
                 </div>
                 <div class="col-5">
                     <div v-if="Object.keys(data.item).length != 0">
@@ -101,9 +118,9 @@
                             </div>
                         </div>
                         <router-link :to="{
-                            name: 'item.edit',
-                            params: { id: data.item._id },
-                        }">
+                                name: 'item.edit',
+                                params: { id: data.item._id },
+                            }">
                             <span class="mt-2 text-violet">
                                 Chỉnh sửa sản phẩm
                                 <i class="fas fa-edit "></i>
@@ -132,8 +149,14 @@ export default {
         const router = useRouter();
         const data = reactive({
             listItem: [],
-            item: {}
+            item: {},
+            cartData: [],
         });
+        if(localStorage.getItem("cartData")!=null){
+            data.cartData = JSON.parse(localStorage.getItem("cartData"));
+        }
+        console.log(data.cartData)
+        const isSetCart = ref(false);
         const searchText = ref("");
         console.log(Object.keys(data.item).length);
         //ref => data= ref(2) =>data.value = 3
@@ -163,7 +186,41 @@ export default {
         let ketqualoc = computed(() => {
             return data.listItem.filter((e) => e.mauSac.toUpperCase().includes(searchText.value.toUpperCase()) || e.ten.toUpperCase().includes(searchText.value.toUpperCase()) || e.gia.toUpperCase().includes(searchText.value.toUpperCase()));
         })
+        async function addToCart(id) {
+            try {
+                
+                const response = await axios.get(`http://localhost:3000/api/item/${id}`);
+                if (response.data.tinhTrang == true) {
+                    alert("Sản phẩm đang được cho thuê");
+                }
+                else {
+                    for (var i = 0; i < data.cartData.length; i++) {
+                        if (id == data.cartData[i]._id) {
+                            
+                            isSetCart.value = true;
+                            break;
+                        }
+                        isSetCart.value = false;
+
+                    }
+                    if(isSetCart.value == false){
+                            data.cartData.push(response.data);
+                            
+                            localStorage.setItem("cartData", JSON.stringify(data.cartData));
+                            
+                            
+                            console.log(data.cartData);
+                    }else{
+                        alert("Sản phẩm đã được thêm vào trước đó!");
+                    }
+                    
+                }
+            } catch (e) {
+
+            }
+        }
         return {
+            addToCart,
             ketqualoc,
             searchText,
             goToAddItem,

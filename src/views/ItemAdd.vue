@@ -1,6 +1,12 @@
 <template>
     <div>
-        <div><a href="" @click="backHome"><i class="fas fa-angle-double-left text-violet mx-4 ml-2 "></i></a></div>
+        <div>
+            <router-link :to="{
+                name: 'home',
+            }">
+                <a><i class="fas fa-angle-double-left text-violet mx-4 ml-2 "></i></a>
+            </router-link>
+        </div>
         <div class="border border-violet rounded col-9 mx-auto">
             <h4>Thêm sản phẩm</h4>
             <div class="container col-8" >
