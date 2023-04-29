@@ -31,12 +31,12 @@
                         <Field name="gia" type="float" class="form-control" v-model="data.item.gia" />
                         <ErrorMessage name="gia" class="error-feedback" />
                     </div>
-                    <div class="form-group form-check">
+                    <!-- <div class="form-group form-check">
                         <input name="tinhTrang" type="checkbox" class="form-check-input" v-model="data.item.tinhTrang" />
                         <label for="tinhTrang" class="form-check-label">
                             <strong>Tình trạng</strong>
                         </label>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <button class="btn btn-violet">Lưu</button>
                     </div>

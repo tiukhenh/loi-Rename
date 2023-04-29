@@ -56,3 +56,10 @@ a,
 .border-violet {
   border-color: rgb(193, 5, 162)!important;
 }
+.table-color {
+  color: #fff;
+  background-color: #ffbcf8;
+}
+.text-dark {
+  color: black;
+}

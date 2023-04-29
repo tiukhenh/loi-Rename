@@ -37,7 +37,7 @@
                         <router-link :to="{
                                 name: 'cart',
                             }">
-                            <a href="" class="text-center text-violet">Sản phẩm đã được chọn</a>
+                            <a href="" class="text-center text-violet">Tạo hóa đơn</a>
                         </router-link>
                     </li>
                 </ul>
@@ -66,17 +66,18 @@
             </div>
             <div class="row">
                 <div class="col-7">
-                    <table class="table mt-2">
+                    <table class="table mt-2 table-color">
                         <thead class="backgound-violet text-white">
                             <tr>
                                 <th scope="col">Tên</th>
                                 <th scope="col">Màu sắc</th>
                                 <th scope="col">Giá</th>
                                 <th scope="col">Trạng thái</th>
+                                <th scope="col"></th>
                             </tr>
                         </thead>
                         <tbody v-for="(item, index) in ketqualoc" :key="item._id">
-                            <tr @click="chooseItem(item._id)">
+                            <tr @click="chooseItem(item._id)" class="text-dark">
                                 <td>{{ item.ten }}</td>
                                 <td>{{ item.mauSac }}</td>
                                 <td>{{ item.gia }}</td>
@@ -89,7 +90,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-5">
+                <div class="col-5 d-flex align-items-start flex-column bd-highlight mb-3">
                     <div v-if="Object.keys(data.item).length != 0">
                         <h4 class="text-violet">
                             Chi tiết Sản phẩm
@@ -127,6 +128,34 @@
                             </span>
                         </router-link>
                     </div>
+                    <div class="mt-auto p-2">
+                        <table class="table mt-2 table-color">
+                            <thead class="backgound-violet text-white">
+                                <tr>
+                                    <th scope="col">Tên</th>
+                                    <th scope="col">Màu sắc</th>
+                                    <th scope="col">Giá</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody v-for="(item, index) in data.cartData" :key="item._id">
+                                <tr class="text-dark">
+                                    <td>{{ item.ten }}</td>
+                                    <td>{{ item.mauSac }}</td>
+                                    <td>{{ item.gia }}</td>
+                                    <td @click="deleteItemInCart(item._id)"><i class="fas fa-trash-alt text-violet"></i>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                            <tr class="text-dark">
+                                <td></td>
+                                <td>Tổng tiền:</td>
+                                <td>{{ gia }}</td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -152,13 +181,11 @@ export default {
             item: {},
             cartData: [],
         });
-        if(localStorage.getItem("cartData")!=null){
+        if (localStorage.getItem("cartData") != null) {
             data.cartData = JSON.parse(localStorage.getItem("cartData"));
         }
-        console.log(data.cartData)
         const isSetCart = ref(false);
         const searchText = ref("");
-        console.log(Object.keys(data.item).length);
         //ref => data= ref(2) =>data.value = 3
         //data = reactive([]); => data.push(1,2);
         async function getAllItems() {
@@ -173,22 +200,12 @@ export default {
         function goToAddItem() {
             router.push("/items");
         }
-        // watch(searchText,(s) => {
-        //     let filterArray = [];console.log(searchText.value)
-        //     for(var i = 0 ;i<data.listItem.length;i++) {
-
-        //         if(data.listItem[i].ten.toLowerCase().includes(s.toLowerCase())){
-        //             filterArray.push(data.listItem[i]);
-        //         }
-        //     }
-        //     data.listItem = filterArray;
-        // });
         let ketqualoc = computed(() => {
             return data.listItem.filter((e) => e.mauSac.toUpperCase().includes(searchText.value.toUpperCase()) || e.ten.toUpperCase().includes(searchText.value.toUpperCase()) || e.gia.toUpperCase().includes(searchText.value.toUpperCase()));
         })
         async function addToCart(id) {
             try {
-                
+
                 const response = await axios.get(`http://localhost:3000/api/item/${id}`);
                 if (response.data.tinhTrang == true) {
                     alert("Sản phẩm đang được cho thuê");
@@ -196,26 +213,49 @@ export default {
                 else {
                     for (var i = 0; i < data.cartData.length; i++) {
                         if (id == data.cartData[i]._id) {
-                            
+
                             isSetCart.value = true;
                             break;
                         }
                         isSetCart.value = false;
 
                     }
-                    if(isSetCart.value == false){
-                            data.cartData.push(response.data);
-                            
-                            localStorage.setItem("cartData", JSON.stringify(data.cartData));
-                            
-                            
-                            console.log(data.cartData);
-                    }else{
+                    if (isSetCart.value == false) {
+                        data.cartData.push(response.data);
+
+                        localStorage.setItem("cartData", JSON.stringify(data.cartData));
+
+
+                        console.log(data.cartData);
+                    } else {
                         alert("Sản phẩm đã được thêm vào trước đó!");
                     }
-                    
+
                 }
             } catch (e) {
+
+            }
+        }
+        let totalPrice = ref(0);
+        if (JSON.parse(localStorage.getItem("cartData")) != null) {
+            data.cartData = JSON.parse(localStorage.getItem("cartData"));
+        }
+        const gia = computed(() => {
+            return data.cartData.reduce((accumulator, currentValue) => accumulator + parseFloat(currentValue.gia), totalPrice.value);
+        });
+        function deleteItemInCart(id) {
+            let text = "Bạn có muốn xóa sản phẩm đã chọn?";
+            if (confirm(text) == true) {
+                for (var i = 0; i < data.cartData.length; i++) {
+                    if (data.cartData[i]._id == id) {
+                        data.cartData.splice(i, 1);
+                    }
+                }
+                if (data.cartData.length == 0) {
+                    localStorage.removeItem("cartData");
+                    return;
+                }
+                localStorage.setItem("cartData", JSON.stringify(data.cartData));
 
             }
         }
@@ -226,6 +266,8 @@ export default {
             goToAddItem,
             data,
             chooseItem,
+            deleteItemInCart,
+            gia,
         }
     }
 };

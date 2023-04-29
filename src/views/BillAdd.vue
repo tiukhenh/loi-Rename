@@ -89,11 +89,13 @@ export default {
             data.bill.ngaylap = currentDate;
             data.bill.products = JSON.parse(localStorage.getItem("cartData"));
             const response = await axios.post("http://localhost:3000/api/bill",data.bill);
-            console.log(data.bill.products);
-            for(var i =0 ;i<data.bill.products.lenght;i++) {
+            // console.log(data.bill.products);
+            for(var i =0 ;i<data.bill.products.length;i++) {
+                console.log(data.bill.products[i]._id);
                 await axios.put(`http://localhost:3000/api/item/tinhtrang/${data.bill.products[i]._id}`);
             }
             localStorage.removeItem("cartData");
+            router.push("/bill");
 
         }
         return {

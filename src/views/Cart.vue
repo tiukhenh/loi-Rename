@@ -24,7 +24,7 @@
                         <router-link :to="{
                                 name: 'cart',
                             }">
-                            <a href="" class="text-center text-violet">Sản phẩm đã được chọn</a>
+                            <a href="" class="text-center text-violet">Tạo hóa đơn</a>
                         </router-link>
                     </li>
                 </ul>
@@ -58,19 +58,20 @@
                             <td></td>
                         </tr>
                     </table>
+                    <div class="row d-flex justify-content-between">
+                        <div class="col-4 ">
+                            <button class="rounded" @click="ContinueAddCart">Thêm sản phẩm</button>
+                        </div>
+                        <div class="col-4 ">
+                            <button class="rounded" @click="gotoAddBill">Tạo Hóa Đơn</button>
+                        </div>
+                        <div class="col-4 ">
+                            <button class="rounded" @click="deleteAllCart">Xóa tất cả</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-2">
-                    <button @click="ContinueAddCart">Thêm sản phẩm</button>
-                </div>
-                <div class="col-2">
-                    <button @click="gotoAddBill">Tạo Hóa Đơn</button>
-                </div>
-                <div class="col-2">
-                    <button @click="deleteAllCart">Xóa tất cả</button>
-                </div>
-            </div>
+
         </div>
     </div>
     <AppFooter />
@@ -97,7 +98,7 @@ export default {
             data.cartData = JSON.parse(localStorage.getItem("cartData"));
         }
         const gia = computed(() => {
-            return data.cartData.reduce((accumulator, currentValue) => accumulator + parseFloat(currentValue.gia),totalPrice.value);
+            return data.cartData.reduce((accumulator, currentValue) => accumulator + parseFloat(currentValue.gia), totalPrice.value);
         });
         function deleteItemInCart(id) {
             let text = "Bạn có muốn đăng xuất không";
@@ -107,7 +108,7 @@ export default {
                         data.cartData.splice(i, 1);
                     }
                 }
-                if(data.cartData.length ==0 ){
+                if (data.cartData.length == 0) {
                     localStorage.removeItem("cartData");
                     return;
                 }
@@ -126,7 +127,7 @@ export default {
         function ContinueAddCart() {
             router.push("/home");
         }
-        function gotoAddBill(){
+        function gotoAddBill() {
             router.push("/bill/add")
         }
         return {
